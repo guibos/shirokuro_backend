@@ -1,0 +1,17 @@
+service: shirokuro-shirokuro-image-resizer
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.11
+
+plugins:
+  - serverless-offline
+
+functions:
+  hello:
+    handler: src.apps.image_resizer.aws.image_resizer_aws_get_controller.image_resizer_aws_get_controller
+    events:
+      - httpApi:
+          path: /
+          method: get

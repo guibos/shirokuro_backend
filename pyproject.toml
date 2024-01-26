@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "shirokuro-image-resizer"
+version = "0.1.0"
+description = ""
+authors = ["Guillermo Ferrer Bosque"]
+readme = "README.md"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.poetry.dependencies]
+python = "^3.11"
+aws-lambda-typing = "^2.18.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.4"
+pytest-xprocess = "^0.23.0"
+pytest-cov = "^4.1.0"
+pytest-bdd = "^7.0.1"
+opencv-python = "^4.9.0.80"
