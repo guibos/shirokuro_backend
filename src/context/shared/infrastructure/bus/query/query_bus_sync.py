@@ -1,32 +1,44 @@
-from typing import Callable, Type
+from logging import Logger
+from typing import Type, Dict
 
-from context.shared.domain.bus.command.command import Command
-from context.shared.domain.bus.command.command_bus import CommandBus
-from context.shared.domain.bus.command.command_handler import CommandHandler
 from context.shared.domain.bus.query.query import Query
 from context.shared.domain.bus.query.query_bus import QueryBus
-from context.shared.infrastructure.bus.handle_locator import HandleLocator
+from context.shared.domain.bus.query.query_handler import QueryHandler
+from context.shared.infrastructure.bus.query.exceptions.query_not_registered_error import QueryNotRegisteredError
+from context.shared.infrastructure.bus.query.exceptions.query_registered_after_dispatch import \
+    QueryRegisteredAfterDispatch
 
 
-class CommandBusSync(CommandBus):
+class QueryBusSync(QueryBus):
+    _IS_SYNC = True
 
-    def __init__(self):
-        self._locator = HandleLocator()
+    def __init__(self, logger: Logger):
+        self._mapping: Dict[Type[Query], QueryHandler] = {}
         self._ask_has_been_called = False
+        self._logger = logger
 
-    # TODO: typing
-    def register(self, query_class: Type, handler: Callable):
+    def register(self, query_class: Type[Query], handler: QueryHandler):
         self._guard_has_been_called()
-        self._locator.add(query_class.__class__.__name__, handler)
+        self._mapping[query_class] = handler
 
     def ask(self, query: Query):
         self._mark_as_asked()
-        handler = self._locator.find(query.__class__.__name__)
+        handler = self._get_handler(query)
         return handler(query)
+
+    def is_sync(self):
+        return self._IS_SYNC
+
+    def _get_handler(self, query: Query):
+        try:
+            return self._mapping[type(query)]
+        except KeyError as e:
+            self._logger.critical(f'Query "%s" has not been registered.', type(query).__name__)
+            raise QueryNotRegisteredError from e
 
     def _guard_has_been_called(self):
         if self._ask_has_been_called:
-            raise RuntimeError('Trying to register a new handler after some query has been asked')
+            raise QueryRegisteredAfterDispatch('Trying to register a new handler after some query has been dispatched')
 
     def _mark_as_asked(self):
         self._ask_has_been_called = True

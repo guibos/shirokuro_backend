@@ -1,5 +1,9 @@
-from abc import ABC
+from abc import ABC, abstractmethod
+
+from context.shared.domain.bus.command.command import Command
 
 
 class CommandHandler(ABC):
-    pass
+    @abstractmethod
+    def __call__(self, command: Command):
+        pass

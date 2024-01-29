@@ -1,2 +1,0 @@
-class Password(str):
-    pass

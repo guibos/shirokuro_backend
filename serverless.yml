@@ -1,4 +1,4 @@
-service: shirokuro-shirokuro-image-resizer
+service: shirokuro_backend
 frameworkVersion: '3'
 
 provider:
@@ -10,8 +10,8 @@ plugins:
 
 functions:
   hello:
-    handler: src.apps.image_resizer.aws.image_resizer_aws_get_controller.image_resizer_aws_get_controller
+    handler: src.apps.lambda.user.account.account_creator_put_controller.account_create_aws_post_controller
     events:
       - httpApi:
           path: /
-          method: get
+          method: PUT

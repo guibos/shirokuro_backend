@@ -1,0 +1,2 @@
+class CommandRegisteredAfterDispatch(RuntimeError):
+    pass
