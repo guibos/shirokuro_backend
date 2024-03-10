@@ -3,8 +3,8 @@ from urllib.parse import urljoin
 
 from pytest_bdd import scenario, given, when, then
 
-from tests.context.user.account.domain.value_object.account_id_mother import AccountIdMother
-from tests.context.user.account.domain.value_object.password_mother import PasswordMother
+from tests.context.iam.account.domain.value_object.account_id_mother import AccountIdMother
+from tests.context.iam.account.domain.value_object.password_mother import PasswordMother
 
 
 @scenario('account_creator_put_controller.feature', 'Create account')

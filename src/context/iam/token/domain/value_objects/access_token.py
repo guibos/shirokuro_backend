@@ -1,0 +1,3 @@
+
+class AccessToken(str):
+    pass
