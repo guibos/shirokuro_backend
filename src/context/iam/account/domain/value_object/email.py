@@ -1,5 +1,5 @@
-from context.shared.domain.types.varchar_type import VarcharType
+from context.shared.domain.types.var_char_type import VarCharType
 
 
-class Email(VarcharType):
+class Email(VarCharType):
     pass

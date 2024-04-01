@@ -1,9 +1,10 @@
 from context.shared.domain.types.var_char_type import VarCharType
 
 
-class Password(VarCharType):
-    _MIN_LENGTH = 8
-    _MAX_LENGTH = 128
+class DescriptionValue(VarCharType):
+    """Every value of a :class:context.internationalization.shared.domain.value_object.description.Description"""
+    _MIN_LENGTH = 1
+    _MAX_LENGTH = 10
 
     @property
     def _min_length(self) -> int:

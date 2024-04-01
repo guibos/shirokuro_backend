@@ -1,7 +1,7 @@
-from context.shared.domain.types.varchar_type import VarcharType
+from context.shared.domain.types.var_char_type import VarCharType
 
 
-class Username(VarcharType):
+class Username(VarCharType):
     _MIN_LENGTH = 1
     _MAX_LENGTH = 64
 
