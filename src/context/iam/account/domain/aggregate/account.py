@@ -16,7 +16,8 @@ class Account(AggregateRoot):
     password: Password
 
     @classmethod
-    def create(cls, account_id: AccountId, username: Username, email: Email, password: Password) -> 'Account':
+    def create(cls, account_id: AccountId, username: Username, email: Email,
+               password: Password) -> 'Account':
         account = Account(
             account_id=account_id,
             username=username,
@@ -24,8 +25,6 @@ class Account(AggregateRoot):
             password=password,
         )
 
-        account._record(
-            AccountCreatedDomainEvent
-        )
+        account._record(AccountCreatedDomainEvent)
 
         return account

@@ -1,116 +1,79 @@
-import logging
-import time
-import sys
-from pathlib import Path
+import uuid
+from dataclasses import dataclass
+from typing import List
 
 import pytest
-from xprocess import ProcessStarter
+from _pytest.fixtures import SubRequest
+from dotenv import dotenv_values
+from pytest_docker_tools import container
+from pytest_docker_tools.wrappers import Container
+from sqlalchemy import URL, text
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+from apps.migrate.main import migrate
+from context.boundary_context import BoundaryContext
 
+_CONFIG = dotenv_values(".template.env")
 
-@pytest.fixture(scope="session")
-def server(xprocess):
-    """
-    This fixtures starts the serverless offline server and dynamodb.
-    Also logs the serverless offline server output to the console.
-    """
+_database_container = container(image=_CONFIG["DATABASE_IMAGE"],
+                                environment={
+                                    'POSTGRES_USER': _CONFIG["DATABASE_USER"],
+                                    'POSTGRES_PASSWORD': _CONFIG["DATABASE_PASS"],
+                                    'POSTGRES_DB': _CONFIG["DATABASE_NAME"],
+                                },
+                                ports={
+                                        _CONFIG["DATABASE_PORT"]: None,
+                                },
 
-    class Starter(ProcessStarter):
-        pattern = "Server ready"
-        args = [
-            "/bin/bash",
-            "-c",
-            "cd " + str(BASE_DIR) + " && serverless offline start " + "--config serverless.yml",
-        ]
-
-    logfile = xprocess.ensure("server", Starter)
-
-    try:
-        # Print logs in console
-        sys.stderr.flush()
-        sys.stdin.flush()
-    except Exception:
-        ...
-    time.sleep(3)
-
-    yield
-    with open(str(logfile[1]), "r") as f:
-        logging.info(f.read())
-
-    xprocess.getinfo("server").terminate()
+            )
 
 
-@pytest.fixture(scope="session")
-def base_url() -> str:
-    return "http://localhost:3000"
+@dataclass(frozen=True)
+class DatabaseConfiguration:
+    url: URL
+    session_maker: async_sessionmaker
 
-#
-#
-# @pytest.fixtures(scope="module")
-# def dynamodb(xprocess) -> DynamoDB:
-#     """
-#     This fixtures starts the dynamodb server only and logs the output to the console.
-#     Scope is set to `module` to avoid db clashing with server db - so db only test cases are placed in the same module.
-#     """
-#
-#     class Starter(ProcessStarter):
-#         pattern = "DynamoDB - created"
-#         args = [
-#             "/bin/bash",
-#             "-c",
-#             "cd " + str(BASE_DIR) + " && serverless dynamodb start --migrate --config serverless-test.yml --sharedDb",
-#         ]
-#
-#     logfile = xprocess.ensure("dynamodb", Starter)
-#
-#     try:
-#         # Print logs in console
-#         sys.stderr.flush()
-#         sys.stdin.flush()
-#     except Exception:
-#         ...
-#
-#     time.sleep(3)
-#     yield
-#     with open(str(logfile[1]), "r") as f:
-#         logger.info(f.read())
-#
-#     xprocess.getinfo("dynamodb").terminate()
-#
-#
-# def create_todo_app_db(db: DynamoDB):
-#     """
-#     This function creates the todo app database.
-#     """
-#     return db.dynamodb_client.create_table(
-#         AttributeDefinitions=[
-#             {"AttributeName": "id", "AttributeType": "S"},
-#             {"AttributeName": "updated_at", "AttributeType": "S"},
-#         ],
-#         KeySchema=[
-#             {"AttributeName": "id", "KeyType": "HASH"},
-#             {"AttributeName": "updated_at", "KeyType": "RANGE"},
-#         ],
-#         TableName=db._table.name,
-#         BillingMode="PAY_PER_REQUEST",
-#     )
-#
-#
-# @pytest.fixtures(scope="function")
-# def clear_db():
-#     """
-#     This fixtures helps in resetting the database after each test by deleting the table and recreating it.
-#     """
-#     yield
-#     dbs = [
-#         DynamoDB(settings.TODO_APP_DB),
-#     ]
-#     for db in dbs:
-#         db.dynamodb_client.delete_table(TableName=db._table.name)
-#         match db._table.name:
-#             case settings.TODO_APP_DB:
-#                 create_todo_app_db(db)
-#             case _:
-#                 raise ValueError(f"Invalid table name: {db._table.name}")
-#         time.sleep(1)
+
+@pytest.fixture(scope="function")
+async def new_database_configuration(_database_container: Container) -> DatabaseConfiguration:
+    new_database_name = f"db_{uuid.uuid4().hex}"
+    default_url = URL.create(
+        drivername="postgresql+asyncpg",
+        host='localhost',
+        port=_database_container.ports['5432/tcp'][0],
+        username=_database_container.env["POSTGRES_USER"],
+        password=_database_container.env["POSTGRES_PASSWORD"],
+        database=_database_container.env["POSTGRES_DB"],
+    )
+    default_engine = create_async_engine(default_url)
+    default_async_session_maker = async_sessionmaker(default_engine)
+    async with default_async_session_maker() as session:
+        await session.execute(text("commit"))
+        await session.execute(text(f"CREATE DATABASE {new_database_name}"))
+        await session.commit()
+        await session.flush()
+    await default_engine.dispose(close=True)
+    new_url = URL.create(
+        drivername=default_url.drivername,
+        host=default_url.host,
+        port=default_url.port,
+        username=default_url.username,
+        password=default_url.password,
+        database=new_database_name,
+    )
+    new_engine = create_async_engine(new_url)
+    new_async_session_maker = async_sessionmaker(new_engine)
+
+    return DatabaseConfiguration(
+        url=new_url,
+        session_maker=new_async_session_maker,
+    )
+
+
+@pytest.fixture(scope="function")
+async def new_database_migrated(
+        new_database_configuration: DatabaseConfiguration,
+        request: SubRequest) -> DatabaseConfiguration:
+    boundary_contexts: List[BoundaryContext] = request.param
+    await migrate(boundary_contexts, new_database_configuration.url)
+    return new_database_configuration

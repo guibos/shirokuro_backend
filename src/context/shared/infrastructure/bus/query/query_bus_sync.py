@@ -33,12 +33,15 @@ class QueryBusSync(QueryBus):
         try:
             return self._mapping[type(query)]
         except KeyError as e:
-            self._logger.critical(f'Query "%s" has not been registered.', type(query).__name__)
+            self._logger.critical(f'Query "%s" has not been registered.',
+                                  type(query).__name__)
             raise QueryNotRegisteredError from e
 
     def _guard_has_been_called(self):
         if self._ask_has_been_called:
-            raise QueryRegisteredAfterDispatch('Trying to register a new handler after some query has been dispatched')
+            raise QueryRegisteredAfterDispatch(
+                'Trying to register a new handler after some query has been dispatched'
+            )
 
     def _mark_as_asked(self):
         self._ask_has_been_called = True

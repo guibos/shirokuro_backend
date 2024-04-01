@@ -2,12 +2,8 @@ from context.shared.domain.types.var_char_type import VarCharType
 
 
 class Username(VarCharType):
-    _MIN_LENGTH = 1
-    _MAX_LENGTH = 64
+    _REGEXP_PATTERN = re.compile('^.{0,100}$')
 
-    def _min_length(self) -> int:
-        return self._MIN_LENGTH
-
-    def _max_length(self) -> int:
-        return self._MIN_LENGTH
-
+    @property
+    def _regexp_pattern(self) -> re.Pattern:
+        return self._REGEXP_PATTERN

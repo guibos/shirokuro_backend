@@ -3,5 +3,6 @@ from context.iam.account.domain.repository.account_repository_interface import A
 
 
 class AccountRepositoryKeyCloak(AccountRepositoryInterface):
+
     def create(self, account: Account) -> None:
         pass

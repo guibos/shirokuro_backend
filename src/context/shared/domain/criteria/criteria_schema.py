@@ -1,0 +1,2 @@
+class CriteriaSchema(list):
+    pass

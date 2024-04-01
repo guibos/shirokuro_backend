@@ -2,6 +2,7 @@ from typing import Callable, Dict
 
 
 class HandleLocator:
+
     def __init__(self):
         self._handlers: Dict[str, Callable] = {}
 

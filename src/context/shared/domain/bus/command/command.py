@@ -1,8 +1,9 @@
 import dataclasses
+from abc import ABC
 
-from context.shared.domain.bus.command.command_meta import CommandMeta
+from context.shared.domain.bus.request.request import Request
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
-class Command:
-    meta: CommandMeta
+class Command(Request, ABC):
+    pass

@@ -1,0 +1,4 @@
+from context.i18n.script.domain.value_object.script_subtag import ScriptSubtag
+from tests.context.shared.domain.types.var_char_regex_type_mother_base import VarCharRegexpTypeMotherBase
+
+script_subtag_mother = VarCharRegexpTypeMotherBase(ScriptSubtag)

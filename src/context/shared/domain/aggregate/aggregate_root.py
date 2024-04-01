@@ -5,6 +5,7 @@ from context.shared.domain.bus.event.domain_event import DomainEvent
 
 
 class AggregateRoot(ABC):
+
     def __init__(self):
         self._domain_events = []
 
