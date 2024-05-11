@@ -7,5 +7,8 @@ class UnauthorizedError(SecurityBaseError):
 
     def __init__(self):
         super().__init__(
-            private_messages=[self._PRIVATE_MESSAGE_TEMPLATE],
-            public_messages=[self._PUBLIC_MESSAGE_TEMPLATE])
+            private_message=self._PRIVATE_MESSAGE_TEMPLATE,
+            public_message=self._PUBLIC_MESSAGE_TEMPLATE,
+            value=None,
+            location=['Authorization']
+        )

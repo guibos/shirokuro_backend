@@ -6,11 +6,12 @@ from context.shared.domain.exception.bad_request.bad_request_error_base import B
 class InvalidLengthError(BadRequestErrorBase):
     _MESSAGE_TEMPLATE = 'Value provided length must be between {} and {}'
 
-    def __init__(self, value: str, localization: List[Union[str, int]], min_length: int, max_length) -> None:
-        messages = [self._MESSAGE_TEMPLATE.format(min_length, max_length)]
+    def __init__(self, value: str, location: List[Union[str, int]], min_length: int, max_length) -> None:
+        message = self._MESSAGE_TEMPLATE.format(min_length, max_length)
 
         super().__init__(
             value=value,
-            localization=localization,
-            public_messages=messages
-            )
+            location=location,
+            public_message=message,
+            private_message=message
+        )

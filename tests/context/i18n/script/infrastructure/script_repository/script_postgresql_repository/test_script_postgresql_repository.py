@@ -16,7 +16,15 @@ test_cases_large = [mother.random() for _ in range(5000)]
 
 @pytest.mark.parametrize('new_database_migrated', [[BoundaryContext.I18N]],
                          indirect=['new_database_migrated'])
-async def test_create(new_database_migrated: DatabaseConfiguration):
+@pytest.mark.parametrize('test_case', ScriptMother().test_cases())
+async def test_create_one(new_database_migrated: DatabaseConfiguration, test_case: Script):
+    repo = ScriptPostgresqlRepository(new_database_migrated.session_maker)
+    await repo.upsert([test_case])
+
+
+@pytest.mark.parametrize('new_database_migrated', [[BoundaryContext.I18N]],
+                         indirect=['new_database_migrated'])
+async def test_create_many(new_database_migrated: DatabaseConfiguration):
     repo = ScriptPostgresqlRepository(new_database_migrated.session_maker)
     test_cases = ScriptMother().test_cases()
     await repo.upsert(test_cases)

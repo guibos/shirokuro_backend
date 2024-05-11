@@ -8,16 +8,16 @@ class InvalidCharSetError(BadRequestErrorBase):
 
     def __init__(self,
                  value: str,
-                 localization: List[Union[str, int]],
+                 location: List[Union[str, int]],
                  allowed_values: Iterable[str],
                  forbidden_values: Iterable[str]) -> None:
         allowed_text = '"' + '", "'.join(allowed_values) + '"'
 
-        messages = [self._MESSAGE_TEMPLATE.format(value, forbidden_values,allowed_text)]
+        message = self._MESSAGE_TEMPLATE.format(value, forbidden_values, allowed_text)
 
         super().__init__(
             value=value,
-            localization=localization,
-            public_messages=messages,
-            private_messages=messages,
+            location=location,
+            public_message=message,
+            private_message=message,
         )
