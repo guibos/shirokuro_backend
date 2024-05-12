@@ -3,13 +3,11 @@ version: '3.8'
 services:
   db:
     restart: 'always'
-    image: postgres:16-alpine
+    image: ${DATABASE_IMAGE}
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
-    networks:
-      - 'zitadel'
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASS}
+      - POSTGRES_DB=${DATABASE_NAME}
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready", "-d", "db_prod" ]
       interval: '10s'
@@ -17,7 +15,13 @@ services:
       retries: 5
       start_period: '20s'
     ports:
-      - '5432:5432'
-
+      - '${DATABASE_PORT}:${DATABASE_PORT}'
+    networks:
+      - backend
+    volumes:
+      - 'database:/var/lib/postgresql/data'
 networks:
-  zitadel:
+  backend:
+
+volumes:
+  database:
